@@ -113,6 +113,15 @@ async def health():
 # 5. Protected Receive Endpoints (SAP → Portal)
 # ============================================================
 
+@app.post("/receive/po_ack", status_code=201)
+async def receive_po_ack(payload: POAckPayload, username: str = Depends(authenticate)):
+    """Receives PO Acknowledgement – requires Basic Auth."""
+    stored = payload.dict()
+    stored["received_at"] = datetime.utcnow().isoformat()
+    stored["internal_id"] = str(uuid4())
+    po_acks_store.append(stored)
+    return {"status": "stored", "id": stored["internal_id"]}
+
 @app.post("/receive/po_error", status_code=201)
 async def receive_po_error(request: Request, username: str = Depends(authenticate)):
     # Read raw body as string
