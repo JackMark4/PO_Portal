@@ -146,15 +146,6 @@ async def receive_po_error(request: Request, username: str = Depends(authenticat
     po_errors_store.append(stored)
     return {"status": "stored", "id": stored["internal_id"]}
 
-@app.post("/receive/po_error", status_code=201)
-async def receive_po_error(payload: POErrorPayload, username: str = Depends(authenticate)):
-    """Receives PO Error – requires Basic Auth."""
-    stored = payload.dict()
-    stored["received_at"] = datetime.utcnow().isoformat()
-    stored["internal_id"] = str(uuid4())
-    po_errors_store.append(stored)
-    return {"status": "stored", "id": stored["internal_id"]}
-
 @app.post("/receive/asn_data", status_code=201)
 async def receive_asn_data(payload: ASNPayload, username: str = Depends(authenticate)):
     """Receives ASN Data – requires Basic Auth."""
