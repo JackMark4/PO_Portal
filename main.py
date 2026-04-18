@@ -15,8 +15,8 @@ security = HTTPBasic()
 
 # Read credentials from environment variables (set on Render)
 # Defaults for local testing (change these)
-AUTH_USERNAME = os.getenv("API_USERNAME", "admin")
-AUTH_PASSWORD = os.getenv("API_PASSWORD", "sap123")
+AUTH_USERNAME = os.getenv("API_USERNAME", "admin").strip()
+AUTH_PASSWORD = os.getenv("API_PASSWORD", "sap123").strip()
 
 def authenticate(credentials: HTTPBasicCredentials = Depends(security)):
     """Verify username and password."""
