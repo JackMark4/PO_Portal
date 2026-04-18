@@ -7,6 +7,8 @@ from datetime import datetime
 from uuid import uuid4
 import os
 from secrets import compare_digest
+import json
+from fastapi import Request
 
 # ============================================================
 # Basic Auth configuration
@@ -111,13 +113,28 @@ async def health():
 # 5. Protected Receive Endpoints (SAP → Portal)
 # ============================================================
 
-@app.post("/receive/po_ack", status_code=201)
-async def receive_po_ack(payload: POAckPayload, username: str = Depends(authenticate)):
-    """Receives PO Acknowledgement – requires Basic Auth."""
+@app.post("/receive/po_error", status_code=201)
+async def receive_po_error(request: Request, username: str = Depends(authenticate)):
+    # Read raw body as string
+    raw_body = await request.body()
+    raw_str = raw_body.decode("utf-8")
+    
+    # If it's already a dict, great; if it's a JSON string, parse it
+    try:
+        data = json.loads(raw_str)
+    except json.JSONDecodeError:
+        raise HTTPException(status_code=400, detail="Invalid JSON")
+    
+    # Validate using Pydantic
+    try:
+        payload = POErrorPayload(**data)
+    except Exception as e:
+        raise HTTPException(status_code=422, detail=str(e))
+    
     stored = payload.dict()
     stored["received_at"] = datetime.utcnow().isoformat()
     stored["internal_id"] = str(uuid4())
-    po_acks_store.append(stored)
+    po_errors_store.append(stored)
     return {"status": "stored", "id": stored["internal_id"]}
 
 @app.post("/receive/po_error", status_code=201)
